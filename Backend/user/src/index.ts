@@ -3,10 +3,14 @@ import dotenv from "dotenv";
 import connectDb from './config/db';
 import { createClient } from 'redis';
 import userRoutes from './routes/user';
+import { connnectRabbitMQ } from './config/rabbitmq';
 
 dotenv.config();
 
 connectDb();
+
+
+connnectRabbitMQ();
 
 export const redisClient = createClient({
   url: process.env.REDIS_URL
