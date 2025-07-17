@@ -32,7 +32,10 @@ export const startSendOtpConsumer = async () => {
             auth: {
               user: process.env.USER,
               pass: process.env.PASSWORD,
-            }
+            },
+            tls: {
+              rejectUnauthorized: false,
+            },
           })
           await transporter.sendMail({
             from: "Chat App",
