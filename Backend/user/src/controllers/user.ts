@@ -2,6 +2,7 @@ import { redisClient } from "..";
 import { generateToken } from "../config/generateToken";
 import { publishToQueue } from "../config/rabbitmq";
 import TryCatch from "../config/TryCatch";
+import { AuthenticatedRequest } from "../middleware/isAuth";
 import { User } from "../model/User";
 
 export const loginUser = TryCatch(async(req, res)=>{
@@ -79,4 +80,9 @@ export const verifyUser = TryCatch(async(req, res)=>{
     token,
   })
 
+})
+
+export const myProfile = TryCatch(async(req: AuthenticatedRequest, res)=>{
+    const user = req.user;
+    res.json(user);
 })

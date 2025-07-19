@@ -11,7 +11,7 @@ Promise<void> => {
     try{
         const authHeader = req.headers.authorization
 
-        if(!authHeader || !authHeader.startsWith("Berrer")){
+        if(!authHeader || !authHeader.startsWith("Bearer")){
             res.status(401).json({
                 message: "Please Login - No auth header",
             });
