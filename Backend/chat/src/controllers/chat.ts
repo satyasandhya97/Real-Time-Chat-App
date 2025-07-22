@@ -191,4 +191,88 @@ export const sendMessage = TryCatch(async (req: AuthenticatedRequest, res) => {
     })
 })
 
+export const getMessagesByChat = TryCatch(async (req: AuthenticatedRequest, res) => {
+    const userId = req.user?._id;
+    const { chatId } = req.params;
 
+    if (!userId) {
+        res.status(401).json({
+            message: "unauthorized",
+        });
+        return;
+    }
+    if (!chatId) {
+        res.status(400).json({
+            message: "ChatId Required",
+        });
+        return;
+    }
+
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+        res.status(400).json({
+            message: "Chat not found",
+        });
+        return;
+    }
+
+    const isUserInChat = chat.users.some(
+        (userId) => userId.toString() === userId.toString()
+    );
+
+    if (!isUserInChat) {
+        res.status(403).json({
+            message: "You are not a participant of this chat"
+        });
+        return;
+    }
+
+    const messagesToMarkSeen = await Message.find({
+        chatId: chatId,
+        sender: { $ne: userId },
+        seend: false,
+    })
+
+    await Message.updateMany(
+        {
+            chatId: chatId,
+            sender: { $ne: userId },
+            seend: false,
+        },
+        {
+            seen: true,
+            seenAt: new Date(),
+        }
+    );
+
+    const message = await Message.find({ chatId }).sort({ createdAt: 1 });
+
+    const otherUserId = chat.users.find((id) => id !== userId);
+
+    try {
+        const { data } = await axios.get(`${process.env.USER_SERVICE}/api/v1/user/${otherUserId}`)
+
+        if (!otherUserId) {
+            res.status(400).json({
+                message: "No other User",
+            })
+            return;
+        }
+
+        //socket work
+
+        res.json({
+            message,
+            user: data,
+        })
+
+    } catch (error) {
+        console.log(error);
+        res.json({
+            message,
+            user: { _id: otherUserId, name: "Unknown User" }
+        })
+
+    }
+
+})
