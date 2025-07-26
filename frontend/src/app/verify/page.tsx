@@ -5,6 +5,7 @@ import { ArrowRight, ChevronLeft, Loader2, Lock } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react'
 import Cookies from 'js-cookie';
+import { user_serice } from '@/context/AppContext';
 
 const VerifyPage = () => {
   const [loading, setLoading] = useState(false);
@@ -70,7 +71,7 @@ const VerifyPage = () => {
     setLoading(true)
 
     try {
-        const {data} = await axios.post('http://localhost:5000/api/v1/verify', {
+        const {data} = await axios.post(`${user_serice}/api/v1/verify`, {
             email,
             otp: otpString
         })
@@ -94,7 +95,7 @@ const VerifyPage = () => {
     setError("");
 
     try {
-        const {data} = await axios.post('http://localhost:5000/api/v1/login', {
+        const {data} = await axios.post(`${user_serice}/api/v1/login`, {
             email,
         });
         alert(data.message);
