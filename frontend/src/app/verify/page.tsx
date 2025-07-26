@@ -1,13 +1,16 @@
 'use client'
+import axios from 'axios';
 import { clear } from 'console';
-import { ArrowRight, Loader2, Lock } from 'lucide-react'
+import { ArrowRight, ChevronLeft, Loader2, Lock } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react'
+import Cookies from 'js-cookie';
 
 const VerifyPage = () => {
   const [loading, setLoading] = useState(false);
   const[otp, setOtp] = useState<string[]>(["", "", "", "","",""]);
-  const [error, setError] = useState<string>("")
+  const [error, setError] = useState<string>("");
+  const[resendLoading , setResendLoading] = useState(false);
   const searchParams = useSearchParams();
   const [timer, setTimer] = useState(60)
   const inputRefs = useRef<Array<HTMLInputElement | null>>([])
@@ -56,15 +59,60 @@ const VerifyPage = () => {
   }
 
 
-  const handleSubmit = () => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const otpString = otp.join("")
+    if(otpString.length !== 6){
+        setError("Please enter all 6 digits");
+        return;
+    } 
+    setError("")
+    setLoading(true)
 
+    try {
+        const {data} = await axios.post('http://localhost:5000/api/v1/verify', {
+            email,
+            otp: otpString
+        })
+        alert(data.message);
+        Cookies.set("token", data.token, {
+            expires:15,
+            secure: false,
+            path: "/"
+        });
+        setOtp(["", "", "", "","",""])
+        inputRefs.current[0]?.focus();
+    } catch (error : any) {
+        setError(error.response.data.message)
+    }finally{
+        setLoading(false)
+    }
+  };
+
+  const handleResendingOtp = async()=>{
+    setResendLoading(true)
+    setError("");
+
+    try {
+        const {data} = await axios.post('http://localhost:5000/api/v1/login', {
+            email,
+        });
+        alert(data.message);
+        setTimer(60)
+    } catch (error : any) {
+        setError(error.response.data.message)
+    }finally{
+        setResendLoading(false)
+    }
   }
 
   return (
     <div className='min-h-screen bg-gray-900 flex items-center justify-center p-4'>
       <div className='max-w-md w-full'>
         <div className='bg-gray-800 border border-gray-700  rounded-lg p-8'>
-          <div className='text-center mb-8'>
+          <div className='text-center mb-8 relative'>
+            <button className='absolute top-0 left-0 p-2 text-gray-300
+            hover:text-white' onClick={() => router.push("/login")}><ChevronLeft className='w-6 h-6' /></button>
             <div className='max-auto w-20 h-20 bg-blue-600 rounded-lg flex items-center justify-center mb-6'>
               <Lock size={40} className='text-white' />
             </div>
@@ -98,9 +146,14 @@ const VerifyPage = () => {
                   }
               </div>
             </div>
+            {error && (
+            <div className='bg-red-900 border border-red-700 rounded-lg p-3'>
+              <p className='text-red-300 text-sm text-center'></p>
+            </div>
+            )}
             <button type="submit" className='w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50
                     disabled:corsor-not-allowed'
-            // disabled={loading}
+            disabled={loading}
             >
               {
                 loading ? (
@@ -117,6 +170,18 @@ const VerifyPage = () => {
               }
             </button>
           </form>
+          <div className='mt-6 text-center'>
+            <p className='text-gray-400 text-sm mb-4'>Din't receive the code?</p>
+            {
+                timer > 0 ? <p className='text-gray-400 text-sm'>Resend code in {timer} seconds</p>
+                :
+                <button className='text-blue-400 hover:text-blue-300 font-medium text-sm disabled:opacity-50'
+                disabled={resendLoading}
+                onClick={handleResendingOtp}>
+                    {resendLoading ? "Sending..." : "Resend Code"}
+                </button>
+            }
+          </div>
         </div>
       </div>
     </div>
