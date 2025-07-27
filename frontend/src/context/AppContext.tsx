@@ -1,11 +1,13 @@
 "use client"
 
-import { error } from "console";
-import App from "next/app";
-import { Children, createContext, ReactNode, useContext, useState } from "react";
 
-export const user_serice = "http://localhost:5000";
-export const chat_serice = "http://localhost:5002";
+import { Children, createContext, ReactNode, useContext, useEffect, useState } from "react";
+import Cookies from "js-cookie";
+import axios from "axios";
+
+
+export const user_service = "http://localhost:5000";
+export const chat_service = "http://localhost:5002";
 
 export interface User {
     _id: string;
@@ -49,6 +51,28 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isAuth, setIsAuth] = useState(false);
     const [loading, setLoading] = useState(true);
+    
+
+    async function fetchUser() {
+        try {
+            const token = Cookies.get("token");
+            const {data} = await axios.get(`${user_service}/api/v1/me`, {
+                headers:{
+                    Authorization: `Bearer ${token}`
+                },
+            })
+            setUser(data)
+            setIsAuth(true);
+            setLoading(false);
+        } catch (error) {
+            console.log(error);
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        fetchUser();
+    },[])
 
     return (
         <AppContext.Provider value={{ user, setUser, isAuth, setIsAuth, loading }}>

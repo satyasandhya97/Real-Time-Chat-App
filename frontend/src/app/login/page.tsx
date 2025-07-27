@@ -1,14 +1,17 @@
 "use client";
-import { user_serice } from '@/context/AppContext';
+import { useAppData, user_service } from '@/context/AppContext';
 import axios from 'axios';
 import { ArrowRight, Loader2, Mail } from 'lucide-react'
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
+import Loading from "@/components/loading";
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  
+  const {isAuth, loading:userLoading} = useAppData()
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLElement>
@@ -18,7 +21,7 @@ const LoginPage = () => {
     setLoading(true);
 
   try {
-      const { data } = await axios.post(`${user_serice}/api/v1/login`, {
+      const { data } = await axios.post(`${user_service}/api/v1/login`, {
         email
       })
       alert(data.message)
@@ -30,6 +33,8 @@ const LoginPage = () => {
     }
   }
 
+  if(userLoading) return <Loading />;
+  if(isAuth) return("/chat");
 
   return (
     <div className='min-h-screen bg-gray-900 flex items-center justify-center p-4'>
