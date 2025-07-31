@@ -1,4 +1,4 @@
-import { redisClient } from "..";
+import { redisClient } from "../index";
 import { generateToken } from "../config/generateToken";
 import { publishToQueue } from "../config/rabbitmq";
 import TryCatch from "../config/TryCatch";
