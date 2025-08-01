@@ -3,8 +3,9 @@ import { useAppData, User } from '@/context/AppContext'
 import React, { useEffect, useState } from 'react'
 import Loading from "@/components/loading";
 import { useRouter } from 'next/navigation';
+import ChartSideBar from '@/components/chartSideBar';;
 
-export interface message{
+export interface message {
   _id: string;
   chatId: string;
   sender: string;
@@ -14,36 +15,54 @@ export interface message{
     publicId: string;
   };
   messageType: "text" | "image"
-  seen : boolean;
+  seen: boolean;
   seenAt?: string;
   createdAt: string;
 }
 
 const ChatApp = () => {
-  const {loading, isAuth , logOutUser, chats, user:loggedInUser,
+  const { loading, isAuth, logOutUser, chats, user: loggedInUser,
     users,
     fetchChats,
     setChats,
   } = useAppData();
-  
+
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [message, setMessage] = useState("");
-  const[siderbarOpen, setSiderbarOpen] = useState(false)
-  const[messages, setMessages] = useState<message[] | null>(null)
-  const[user, setUser] = useState<User | null>(null)
-  const[ showAllUser, setShowAllUser ] = useState(false)
+  const [siderbarOpen, setSiderbarOpen] = useState(false)
+  const [messages, setMessages] = useState<message[] | null>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [showAllUser, setShowAllUser] = useState(false)
+  const [isTyping, setTyping] = useState(false);
+  const [typingTimeOut, settypingTimeOut] = useState<NodeJS.Timeout | null>(null)
 
   const router = useRouter();
-  
+
   useEffect(() => {
-    if(!isAuth && !loading){
+    if (!isAuth && !loading) {
       router.push("/login");
     }
   }, [isAuth, router, loading]);
- 
-  if(loading) return <Loading />
+
+  const handleLogout = () => logOutUser();
+
+  if (loading) return <Loading />
+
   return (
-    <div>chatapp</div>
+    <div className='min-h-screen flex bg-gray-900 text-white relative overflow-hidden'>
+      <ChartSideBar 
+        sidebarOpen={siderbarOpen}
+        setSidebarOpen={setSiderbarOpen}
+        showAllUsers={showAllUser}
+        setShowAllUsers={setShowAllUser}
+        users={users}
+        loggedInUser={loggedInUser}
+        chats={chats}
+        selectedUser={selectedUser}
+        handleLogout={handleLogout}
+        setSelectedUser={setSelectedUser}  
+      />
+    </div>
   )
 }
 
