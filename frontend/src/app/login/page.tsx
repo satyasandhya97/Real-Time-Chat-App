@@ -42,7 +42,7 @@ const LoginPage = () => {
       <div className='max-w-md w-full'>
         <div className='bg-gray-800 border border-gray-700  rounded-lg p-8'>
           <div className='text-center mb-8'>
-            <div className='max-auto w-20 h-20 bg-blue-600 rounded-lg flex items-center justify-center mb-6'>
+            <div className='max-auto w-20 h-20 bg-blue-600 rounded-lg flex items-center justify-center mb-6 ml-[150px]'>
               <Mail size={40} className='text-white' />
             </div>
             <h1 className='text-4xl font-bold text-white mb-3'>
