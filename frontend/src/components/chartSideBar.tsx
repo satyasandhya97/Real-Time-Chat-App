@@ -125,6 +125,23 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
                       <div className="w-12 h-12 rounded-fu;; bg-gray-700 flex items-center justify-center">
                         <UserCircle className='w-7 h-7 text-gray-300' />
                         {/* onlineuser ka work hai */}
+
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`font-semibold truncate ${isSelected ? "text-white" : "text-gray-200"
+                          }`}>
+                          {chat.user.name}
+                        </span>
+                        {
+                          unseenCount > 0 && (<div className="bg-red-600 text-white text-xs 
+                              font-blod rounded-full min-w-[22px] h-5.5 flex items-center
+                              justify-center px-2">
+                            {unseenCount > 99 ? "99+" : unseenCount}
+                          </div>
+                          )}
+                        
                       </div>
                     </div>
                   </div>

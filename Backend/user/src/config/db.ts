@@ -13,7 +13,7 @@ const connectDb = async() => {
 
     try{
      await mongoose.connect(`${url}`,{
-        dbName: "MicroServiceChatApp",
+        dbName: "MicroServiceChatAppUsers",
      });
      console.log("connected to mongodb");
     }catch (error){

@@ -7,7 +7,7 @@ import axios from "axios";
 export const createNewChat = TryCatch(async (req: AuthenticatedRequest, res) => {
     const userId = req.user?._id;
     const { otherUserId } = req.body;
-
+    
     if (!otherUserId) {
         res.status(400).json({
             message: "Other userId is required",
@@ -141,7 +141,7 @@ export const sendMessage = TryCatch(async (req: AuthenticatedRequest, res) => {
     );
     if (!otherUserId) {
         res.status(401).json({
-            message: "Np other user",
+            message: "No other user",
         });
         return;
     }
