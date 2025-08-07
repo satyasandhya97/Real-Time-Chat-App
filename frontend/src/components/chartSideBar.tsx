@@ -14,11 +14,12 @@ interface ChartSideBarProps {
   selectedUser: string | null;
   setSelectedUser: (userId: string | null) => void;
   handleLogout: () => void;
+  createChat: (user: User) => void;
 }
 
 const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUsers,
   users, loggedInUser, chats, selectedUser, setSelectedUser,
-  handleLogout
+  handleLogout, createChat
 }: ChartSideBarProps) => {
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -81,7 +82,9 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
                   u.name.toLowerCase().includes(searchQuery.toLowerCase())).map
                   ((u) => (
                     <button key={u._id} className='w-full text-left p-4 rounded-lg border-gray-700
-                        hover:bg-gray-800 transition-colors'>
+                        hover:bg-gray-800 transition-colors'
+                        onClick={() => createChat(u)}
+                        >
                       <div className="flex items=center gap-3">
                         <div className="relative">
                           <UserCircle className='w-6 h-6 text-gray-300' />

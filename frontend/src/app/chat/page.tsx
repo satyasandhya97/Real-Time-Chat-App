@@ -1,9 +1,13 @@
 "use client";
-import { useAppData, User } from '@/context/AppContext'
+import { chat_service, useAppData, User } from '@/context/AppContext'
 import React, { useEffect, useState } from 'react'
 import Loading from "@/components/loading";
 import { useRouter } from 'next/navigation';
-import ChartSideBar from '@/components/chartSideBar';;
+import ChartSideBar from '@/components/chartSideBar';import toast from 'react-hot-toast';
+;
+import Cookies from 'js-cookie';
+import axios from 'axios';
+import ChatHeader from '@/components/chatHeader';
 
 export interface message {
   _id: string;
@@ -46,6 +50,32 @@ const ChatApp = () => {
 
   const handleLogout = () => logOutUser();
 
+  async function createChat(u : User) {
+    try {
+      const token = Cookies.get("token");
+      const {data} = await axios.post(`${chat_service}/api/v1/chat/new`,{
+        userId: loggedInUser?._id,
+        otherUserId: u._id,
+      },{
+        headers:{
+          Authorization: `Bearer ${token}`
+        },
+      });
+
+      setSelectedUser(data.chatId);
+      setShowAllUser(false);
+      await fetchChats();
+    } catch (error) {
+      toast.error("Failed to start chat");
+    }
+  }
+
+  useEffect(()=>{
+    if(selectedUser){
+      fetchChats();
+    }
+  }, [selectedUser]);
+
   if (loading) return <Loading />
 
   return (
@@ -61,7 +91,13 @@ const ChatApp = () => {
         selectedUser={selectedUser}
         handleLogout={handleLogout}
         setSelectedUser={setSelectedUser}  
+        createChat= {createChat}
       />
+
+      <div className="flex-1 flex flex-col justify-between p-4 backdrop-blur-xl
+         bg-white/5 border-white/10">
+          <ChatHeader />
+         </div>
     </div>
   )
 }
