@@ -3,7 +3,8 @@ import { chat_service, useAppData, User } from '@/context/AppContext'
 import React, { useEffect, useState } from 'react'
 import Loading from "@/components/loading";
 import { useRouter } from 'next/navigation';
-import ChartSideBar from '@/components/chartSideBar';import toast from 'react-hot-toast';
+import ChartSideBar from '@/components/chartSideBar';
+import toast from 'react-hot-toast';
 ;
 import Cookies from 'js-cookie';
 import axios from 'axios';
@@ -50,14 +51,14 @@ const ChatApp = () => {
 
   const handleLogout = () => logOutUser();
 
-  async function createChat(u : User) {
+  async function createChat(u: User) {
     try {
       const token = Cookies.get("token");
-      const {data} = await axios.post(`${chat_service}/api/v1/chat/new`,{
+      const { data } = await axios.post(`${chat_service}/api/v1/chat/new`, {
         userId: loggedInUser?._id,
         otherUserId: u._id,
-      },{
-        headers:{
+      }, {
+        headers: {
           Authorization: `Bearer ${token}`
         },
       });
@@ -70,8 +71,8 @@ const ChatApp = () => {
     }
   }
 
-  useEffect(()=>{
-    if(selectedUser){
+  useEffect(() => {
+    if (selectedUser) {
       fetchChats();
     }
   }, [selectedUser]);
@@ -80,7 +81,7 @@ const ChatApp = () => {
 
   return (
     <div className='min-h-screen flex bg-gray-900 text-white relative overflow-hidden'>
-      <ChartSideBar 
+      <ChartSideBar
         sidebarOpen={siderbarOpen}
         setSidebarOpen={setSiderbarOpen}
         showAllUsers={showAllUser}
@@ -90,14 +91,14 @@ const ChatApp = () => {
         chats={chats}
         selectedUser={selectedUser}
         handleLogout={handleLogout}
-        setSelectedUser={setSelectedUser}  
-        createChat= {createChat}
+        setSelectedUser={setSelectedUser}
+        createChat={createChat}
       />
 
       <div className="flex-1 flex flex-col justify-between p-4 backdrop-blur-xl
          bg-white/5 border-white/10">
-          <ChatHeader />
-         </div>
+        <ChatHeader user={user} setSidebarOpen={setSiderbarOpen} isTyping={isTyping} />
+      </div>
     </div>
   )
 }
