@@ -1,0 +1,87 @@
+import { User } from '@/context/AppContext';
+import React, { useEffect, useMemo, useRef } from 'react'
+import { message } from '@/app/chat/page';
+
+interface ChartMessagesProps {
+    selectedUser: string | null;
+    messages: message[] | null;
+    loggedInUser: User | null;
+
+}
+
+const chartMessages = ({ selectedUser, messages, loggedInUser }: ChartMessagesProps) => {
+
+    const bottomRef = useRef<HTMLDivElement>(null);
+    //seen feature;
+    const uniqueMessages = useMemo(() => {
+        if (!messages) return [];
+        const seen = new Set()
+        return messages.filter((message) => {
+            if (seen.has(message._id)) {
+                return false
+            }
+            seen.add(message._id)
+            return true;
+        })
+    }, [messages])
+
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    }, [selectedUser, uniqueMessages])
+
+    return (
+        <div className='flex-1 overflow-hidden'>
+            <div className="h-full max-h-[calc(100vh-215px)] overflow-y-auto p-2 space-y-2 custom-scroll">
+                {
+                    !selectedUser ? (<p className='text-gray-400 text-center mt-20'>
+                        Please select a user to start chating 📩
+                    </p>
+                    ) : (
+                        <>
+                            {
+                                uniqueMessages.map((e, i) => {
+                                    const isSentByme = e.sender === loggedInUser?._id;
+                                    const uniqueKey = `${e._id}-${i}`
+
+                                    return (
+                                        <div className={`flex flex-col gap-1 mt-2 ${isSentByme ? "item-end" : "items-start"
+                                            }`}>
+
+                                            <div className={`rounded-lg p-3 max-w-sm ${isSentByme
+                                                ? `bg-blue-600 text-white`
+                                                : `bg-gray-700 text-white`
+                                                }`}>
+                                                {
+                                                    e.messageType === "image" && e.image && (
+                                                        <div className="relative group">
+                                                            <img src={e.image.url} alt="shared image"
+                                                                className='max-w-full h-auto rounded-lg'
+                                                            />
+                                                        </div>
+                                                    )
+                                                }
+
+                                                {e.text && <p className='mt-1'>{e.text}</p>}
+                                            </div>
+
+                                            <div className={`flex items-center gap-1 text-xs text-gray-400 ${isSentByme ? "pr-2 flex-row-reverse" : "pl-2"
+                                                }`}>
+
+                                                <span>
+
+
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </>
+                    )
+                }
+            </div>
+        </div>
+    )
+}
+
+export default chartMessages

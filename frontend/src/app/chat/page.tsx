@@ -5,7 +5,7 @@ import Loading from "@/components/loading";
 import { useRouter } from 'next/navigation';
 import ChartSideBar from '@/components/chartSideBar';
 import toast from 'react-hot-toast';
-;
+import ChartMessages from '@/components/chartMessages';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import ChatHeader from '@/components/chatHeader';
@@ -98,6 +98,12 @@ const ChatApp = () => {
       <div className="flex-1 flex flex-col justify-between p-4 backdrop-blur-xl
          bg-white/5 border-white/10">
         <ChatHeader user={user} setSidebarOpen={setSiderbarOpen} isTyping={isTyping} />
+
+        <ChartMessages
+          selectedUser={selectedUser}
+          messages={messages}
+          loggedInUser={loggedInUser}
+        />
       </div>
     </div>
   )
