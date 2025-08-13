@@ -1,6 +1,8 @@
 import { User } from '@/context/AppContext';
 import React, { useEffect, useMemo, useRef } from 'react'
 import { message } from '@/app/chat/page';
+import moment from 'moment';
+import { Check, CheckCheck } from 'lucide-react';
 
 interface ChartMessagesProps {
     selectedUser: string | null;
@@ -68,9 +70,18 @@ const chartMessages = ({ selectedUser, messages, loggedInUser }: ChartMessagesPr
                                                 }`}>
 
                                                 <span>
-
-
+                                                    {moment(e.createdAt).format("hh:mm A . MMM D")}
                                                 </span>
+                                                {
+                                                    isSentByme && <div className="flex items-center ml-1">
+                                                        {e.seen ? <div className="flex items-center gap-1 text-blue-400">
+                                                            <CheckCheck className='w-3 h-3' />
+                                                            {
+                                                                e.seenAt && <span>{moment(e.seenAt).format("hh:mm A")}</span>
+                                                            }
+                                                        </div> : <Check className='w-3 h-3 text-gray-500' />}
+                                                    </div>
+                                                }
                                             </div>
                                         </div>
                                     )
