@@ -10,6 +10,7 @@ import Cookies from 'js-cookie';
 import axios from 'axios';
 import ChatHeader from '@/components/chatHeader';
 import MessageInput from '@/components/messageInput';
+import { SocketData } from '@/context/SocketContext';
 
 export interface message {
   _id: string;
@@ -32,6 +33,10 @@ const ChatApp = () => {
     fetchChats,
     setChats,
   } = useAppData();
+
+  const { onlineUsers } = SocketData()
+
+  console.log("onlineUsers", onlineUsers)
 
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [message, setMessage] = useState("");
@@ -153,12 +158,12 @@ const ChatApp = () => {
         selectedUser={selectedUser}
         handleLogout={handleLogout}
         setSelectedUser={setSelectedUser}
-        createChat={createChat}
-      />
+        createChat={createChat} onlineUsers={[]} />
 
       <div className="flex-1 flex flex-col justify-between p-4 backdrop-blur-xl
          bg-white/5 border-white/10">
-        <ChatHeader user={user} setSidebarOpen={setSiderbarOpen} isTyping={isTyping} />
+        <ChatHeader user={user} setSidebarOpen={setSiderbarOpen} isTyping={isTyping}
+          onlineUsers={onlineUsers} />
 
         <ChartMessages
           selectedUser={selectedUser}
