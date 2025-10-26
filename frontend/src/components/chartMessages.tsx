@@ -47,7 +47,9 @@ const chartMessages = ({ selectedUser, messages, loggedInUser }: ChartMessagesPr
 
                                     return (
                                         <div className={`flex flex-col gap-1 mt-2 ${isSentByme ? "item-end" : "items-start"
-                                            }`}>
+                                            }`}
+                                            key={uniqueKey}
+                                        >
 
                                             <div className={`rounded-lg p-3 max-w-sm ${isSentByme
                                                 ? `bg-blue-600 text-white`
@@ -87,6 +89,7 @@ const chartMessages = ({ selectedUser, messages, loggedInUser }: ChartMessagesPr
                                     )
                                 })
                             }
+                            <div ref={bottomRef}></div>
                         </>
                     )
                 }

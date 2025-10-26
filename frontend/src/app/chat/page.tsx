@@ -9,6 +9,7 @@ import ChartMessages from '@/components/chartMessages';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import ChatHeader from '@/components/chatHeader';
+import MessageInput from '@/components/messageInput';
 
 export interface message {
   _id: string;
@@ -71,6 +72,66 @@ const ChatApp = () => {
     }
   }
 
+  const handleMessageSend = async (e: any, imageFIle?: File | null) => {
+    e.preventDefault()
+
+    if (!message.trim() && !imageFIle) return;
+
+    if (!selectedUser) return;
+    // socket work
+
+    const token = Cookies.get("token")
+
+    try {
+      const formData = new FormData()
+
+      formData.append("chatId", selectedUser)
+
+      if (message.trim()) {
+        formData.append("text", message)
+      }
+
+      if (imageFIle) {
+        formData.append("image", imageFIle);
+      }
+      const { data } = await axios.post(`${chat_service}/api/v1/message`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      )
+
+      setMessages((prev) => {
+        const currentMessages = prev || []
+        const messageExists = currentMessages.some(
+          (msg: { _id: any; }) => msg._id === data.message._id
+        );
+
+        if (!messageExists) {
+          return [...currentMessages, data.message]
+        }
+        return currentMessages
+      });
+
+      setMessage("")
+
+      const displayText = imageFIle ? "📷 image" : message
+
+    } catch (error: any) {
+      toast.error(error.response.data.message)
+    }
+  }
+  const handleTyping = (value: string) => {
+    setMessage(value)
+
+    if (!selectedUser) return;
+
+    //socket setup
+  }
+
   useEffect(() => {
     if (selectedUser) {
       fetchChats();
@@ -104,6 +165,10 @@ const ChatApp = () => {
           messages={messages}
           loggedInUser={loggedInUser}
         />
+
+        <MessageInput selectedUser={selectedUser} message={message}
+          setMessage={handleTyping}
+          handleMessageSend={handleMessageSend} />
       </div>
     </div>
   )
