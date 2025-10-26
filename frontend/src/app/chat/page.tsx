@@ -3,9 +3,9 @@ import { chat_service, useAppData, User } from '@/context/AppContext'
 import React, { useEffect, useState } from 'react'
 import Loading from "@/components/loading";
 import { useRouter } from 'next/navigation';
-import ChartSideBar from '@/components/chartSideBar';
+import ChartSideBar from '@/components/chatSideBar';
 import toast from 'react-hot-toast';
-import ChartMessages from '@/components/chartMessages';
+import ChatMessages from '@/components/chatMessages';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import ChatHeader from '@/components/chatHeader';
@@ -165,7 +165,7 @@ const ChatApp = () => {
         <ChatHeader user={user} setSidebarOpen={setSiderbarOpen} isTyping={isTyping}
           onlineUsers={onlineUsers} />
 
-        <ChartMessages
+        <ChatMessages
           selectedUser={selectedUser}
           messages={messages}
           loggedInUser={loggedInUser}

@@ -4,14 +4,14 @@ import { message } from '@/app/chat/page';
 import moment from 'moment';
 import { Check, CheckCheck } from 'lucide-react';
 
-interface ChartMessagesProps {
+interface ChatMessagesProps {
     selectedUser: string | null;
     messages: message[] | null;
     loggedInUser: User | null;
 
 }
 
-const chartMessages = ({ selectedUser, messages, loggedInUser }: ChartMessagesProps) => {
+const ChatMessages = ({ selectedUser, messages, loggedInUser }: ChatMessagesProps) => {
 
     const bottomRef = useRef<HTMLDivElement>(null);
     //seen feature;
@@ -98,4 +98,4 @@ const chartMessages = ({ selectedUser, messages, loggedInUser }: ChartMessagesPr
     )
 }
 
-export default chartMessages
+export default ChatMessages

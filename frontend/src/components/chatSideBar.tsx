@@ -15,11 +15,12 @@ interface ChartSideBarProps {
   setSelectedUser: (userId: string | null) => void;
   handleLogout: () => void;
   createChat: (user: User) => void;
+  onlineUsers: string[];
 }
 
 const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUsers,
   users, loggedInUser, chats, selectedUser, setSelectedUser,
-  handleLogout, createChat
+  handleLogout, createChat, onlineUsers
 }: ChartSideBarProps) => {
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -83,18 +84,25 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
                   ((u) => (
                     <button key={u._id} className='w-full text-left p-4 rounded-lg border-gray-700
                         hover:bg-gray-800 transition-colors'
-                        onClick={() => createChat(u)}
-                        >
+                      onClick={() => createChat(u)}
+                    >
                       <div className="flex items=center gap-3">
                         <div className="relative">
                           <UserCircle className='w-6 h-6 text-gray-300' />
+                          {/* online symbol dikhana hai */}
+                          {
+                            onlineUsers.includes(u._id) && (
+                              <span className='absolute -top-0.5 -right-0.5 w-3.5 h-3.5
+                            rounded-full bg-green-500 border-2 border-gray-900'/>
+                            )
+                          }
                         </div>
-                        {/* online symbol dikhana hai */}
 
                         <div className="flex-1 min-w-0">
                           <span className='font-medium text-white'>{u.name}</span>
                           <div className='text-xs text-gray-400 mt-0.5'>
                             {/* to show online offline text */}
+                            {onlineUsers.includes(u._id) ? "Online" : "Offline"}
                           </div>
                         </div>
                       </div>
@@ -131,6 +139,10 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
                         {/* onlineuser ka work hai */}
 
                       </div>
+                      {onlineUsers.includes(chat.user._id) && (
+                        <span className='absolute -top-0.5 -right-0.5 w-3.5 h-3.5
+                            rounded-full bg-green-500 border-2 border-gray-900'/>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
@@ -150,10 +162,10 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
                       {
                         latestMessage && <div className="flex items-center gap-2">
                           {isSentByMe ?
-                           (<CornerUpLeft size={14} className='text-blue-400 text-shrink-0' />)
-                           : (<CornerDownLeft size={14} className='text-green-400 text-shring-0' />)}
+                            (<CornerUpLeft size={14} className='text-blue-400 text-shrink-0' />)
+                            : (<CornerDownLeft size={14} className='text-green-400 text-shring-0' />)}
 
-                           <span className='text-sm text-gray-400 truncate flex-1'>{latestMessage.text}</span>
+                          <span className='text-sm text-gray-400 truncate flex-1'>{latestMessage.text}</span>
                         </div>
                       }
                     </div>
@@ -165,13 +177,13 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center">
-             <div className="p-4 bg-gray-800 rounded-full mb-4">
-              <MessageCircle className='w-8 h-8 text-gray-400' />
-             </div>
-             <p className='text-gray-400 font-medium'>No conversation yet</p>
-             <p className='text-sm text-gray-500 mt-1'>
-              Start a new chat to begin messaging
-             </p>
+              <div className="p-4 bg-gray-800 rounded-full mb-4">
+                <MessageCircle className='w-8 h-8 text-gray-400' />
+              </div>
+              <p className='text-gray-400 font-medium'>No conversation yet</p>
+              <p className='text-sm text-gray-500 mt-1'>
+                Start a new chat to begin messaging
+              </p>
             </div>
           )
         )}
@@ -179,14 +191,14 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
       <div className="p-4 border-t border-gray-700 space-y-2">
         <Link href={"/profile"} className='flex items-center gap-3 px-4 py-3
           rounded-lg hover:bg-gray-800 transition-colors'>
-            <div className="p-1.5 bg-gray-700 rounded-lg">
-             <UserCircle className='w-4 h-4 text-gray-300' /> 
-            </div>
-            <span className='font-medium text-gray-300'>Profile</span>
+          <div className="p-1.5 bg-gray-700 rounded-lg">
+            <UserCircle className='w-4 h-4 text-gray-300' />
+          </div>
+          <span className='font-medium text-gray-300'>Profile</span>
         </Link>
-      <button 
-         onClick={handleLogout}
-         className='w-full flex items-center gap-3 px-4 py-3 rounded-lg
+        <button
+          onClick={handleLogout}
+          className='w-full flex items-center gap-3 px-4 py-3 rounded-lg
          hover:bg-red-600 transition-colorsntext-red-500 hover:text-white'
         >
           <div className="p-1.5 bg-red-600 rounded-lg">
