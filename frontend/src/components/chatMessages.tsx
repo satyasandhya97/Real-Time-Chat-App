@@ -46,7 +46,7 @@ const ChatMessages = ({ selectedUser, messages, loggedInUser }: ChatMessagesProp
                                     const uniqueKey = `${e._id}-${i}`
 
                                     return (
-                                        <div className={`flex flex-col gap-1 mt-2 ${isSentByme ? "item-end" : "items-start"
+                                        <div className={`flex flex-col gap-1 mt-2 ${isSentByme ? "items-end" : "items-start"
                                             }`}
                                             key={uniqueKey}
                                         >

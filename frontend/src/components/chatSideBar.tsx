@@ -86,7 +86,7 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
                         hover:bg-gray-800 transition-colors'
                       onClick={() => createChat(u)}
                     >
-                      <div className="flex items=center gap-3">
+                      <div className="flex items-center gap-3">
                         <div className="relative">
                           <UserCircle className='w-6 h-6 text-gray-300' />
                           {/* online symbol dikhana hai */}
@@ -114,7 +114,7 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
           </div>
         ) : (
           chats && chats.length > 0 ? (
-            <div className="space-y-2 overflow-y-auto h-full bp-4">
+            <div className="space-y-2 overflow-y-auto h-full pb-4">
               {chats.map((chat) => {
                 const latestMessage = chat.chat.letestMessage;
                 const isSelected = selectedUser === chat.chat._id;
@@ -134,7 +134,7 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className="w-12 h-12 rounded-fu;; bg-gray-700 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
                         <UserCircle className='w-7 h-7 text-gray-300' />
                         {/* onlineuser ka work hai */}
 
@@ -152,7 +152,7 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
                         </span>
                         {
                           unseenCount > 0 && (<div className="bg-red-600 text-white text-xs 
-                              font-blod rounded-full min-w-[22px] h-5.5 flex items-center
+                              font-bold rounded-full min-w-[22px] h-[22px] flex items-center
                               justify-center px-2">
                             {unseenCount > 99 ? "99+" : unseenCount}
                           </div>
@@ -162,8 +162,8 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
                       {
                         latestMessage && <div className="flex items-center gap-2">
                           {isSentByMe ?
-                            (<CornerUpLeft size={14} className='text-blue-400 text-shrink-0' />)
-                            : (<CornerDownLeft size={14} className='text-green-400 text-shring-0' />)}
+                            (<CornerUpLeft size={14} className='text-blue-400 flex-shrink-0' />)
+                            : (<CornerDownLeft size={14} className='text-green-400 flex-shrink-0' />)}
 
                           <span className='text-sm text-gray-400 truncate flex-1'>{latestMessage.text}</span>
                         </div>
@@ -199,7 +199,7 @@ const ChartSideBar = ({ sidebarOpen, setShowAllUsers, setSidebarOpen, showAllUse
         <button
           onClick={handleLogout}
           className='w-full flex items-center gap-3 px-4 py-3 rounded-lg
-         hover:bg-red-600 transition-colorsntext-red-500 hover:text-white'
+         hover:bg-red-600 transition-colors text-red-500 hover:text-white'
         >
           <div className="p-1.5 bg-red-600 rounded-lg">
             <LogOut className="w-4 h-4 text-gray-300" />
