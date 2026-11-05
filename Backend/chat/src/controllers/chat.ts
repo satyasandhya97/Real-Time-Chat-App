@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from "../middlewares/isAuth";
 import { Chat } from "../models/chats";
 import { Message } from "../models/messages";
 import axios from "axios";
+import { io, getReceiverSocketId } from "../config/socket";
 
 export const createNewChat = TryCatch(async (req: AuthenticatedRequest, res) => {
     const userId = req.user?._id;
@@ -182,8 +183,12 @@ export const sendMessage = TryCatch(async (req: AuthenticatedRequest, res) => {
     )
 
     //emit to sockets
-
-
+    if (otherUserId) {
+        const receiverSocketId = getReceiverSocketId(otherUserId.toString());
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", saveMessage);
+        }
+    }
 
     res.status(201).json({
         message: saveMessage,
@@ -227,17 +232,11 @@ export const getMessagesByChat = TryCatch(async (req: AuthenticatedRequest, res)
         return;
     }
 
-    const messagesToMarkSeen = await Message.find({
-        chatId: chatId,
-        sender: { $ne: userId },
-        seend: false,
-    })
-
     await Message.updateMany(
         {
             chatId: chatId,
             sender: { $ne: userId },
-            seend: false,
+            seen: false,
         },
         {
             seen: true,
@@ -248,6 +247,13 @@ export const getMessagesByChat = TryCatch(async (req: AuthenticatedRequest, res)
     const message = await Message.find({ chatId }).sort({ createdAt: 1 });
 
     const otherUserId = chat.users.find((id) => id !== userId);
+
+    if (otherUserId) {
+        const receiverSocketId = getReceiverSocketId(otherUserId.toString());
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("messagesSeen", { chatId });
+        }
+    }
 
     try {
         const { data } = await axios.get(`${process.env.USER_SERVICE}/api/v1/user/${otherUserId}`)
