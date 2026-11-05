@@ -1,6 +1,6 @@
 "use client";
-import { chat_service, useAppData, User } from '@/context/AppContext'
-import React, { useEffect, useState } from 'react'
+import { chat_service, useAppData, User } from '@/context/AppContext';
+import React, { useEffect, useState } from 'react';
 import Loading from "@/components/loading";
 import { useRouter } from 'next/navigation';
 import ChartSideBar from '@/components/chatSideBar';
@@ -21,31 +21,33 @@ export interface message {
     url: string;
     publicId: string;
   };
-  messageType: "text" | "image"
+  messageType: "text" | "image";
   seen: boolean;
   seenAt?: string;
   createdAt: string;
 }
 
 const ChatApp = () => {
-  const { loading, isAuth, logOutUser, chats, user: loggedInUser,
+  const {
+    loading,
+    isAuth,
+    logOutUser,
+    chats,
+    user: loggedInUser,
     users,
     fetchChats,
     setChats,
   } = useAppData();
 
-  const { onlineUsers } = SocketData()
+  const { socket, onlineUsers } = SocketData();
 
-  console.log("onlineUsers", onlineUsers)
-
-  const [selectedUser, setSelectedUser] = useState<string | null>(null)
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [message, setMessage] = useState("");
-  const [siderbarOpen, setSiderbarOpen] = useState(false)
-  const [messages, setMessages] = useState<message[] | null>(null)
-  const [user, setUser] = useState<User | null>(null)
-  const [showAllUser, setShowAllUser] = useState(false)
+  const [siderbarOpen, setSiderbarOpen] = useState(false);
+  const [messages, setMessages] = useState<message[] | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [showAllUser, setShowAllUser] = useState(false);
   const [isTyping, setTyping] = useState(false);
-  const [typingTimeOut, settypingTimeOut] = useState<NodeJS.Timeout | null>(null)
 
   const router = useRouter();
 
@@ -57,49 +59,163 @@ const ChatApp = () => {
 
   const handleLogout = () => logOutUser();
 
+  // Helper to resolve contact name from users list if backend returns "Unknown User"
+  const resolveContact = (rawUser: any, chatUsers?: string[]) => {
+    if (!rawUser || rawUser.name === "Unknown User") {
+      const otherId = chatUsers?.find((id) => id !== loggedInUser?._id) || rawUser?._id;
+      const matched = users?.find((u) => u._id === otherId);
+      if (matched) return matched;
+    }
+    return rawUser;
+  };
+
+  // Synchronize active chat user and fetch messages when selectedUser changes without re-render loop
+  useEffect(() => {
+    if (!selectedUser) {
+      setUser(null);
+      setMessages(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    // Immediately resolve and set user from chats/users list for instant feedback
+    if (chats) {
+      const currentChat = chats.find((c) => c.chat._id === selectedUser);
+      if (currentChat) {
+        const resolved = resolveContact(currentChat.user, currentChat.chat?.users);
+        if (resolved) {
+          setUser(resolved);
+        }
+      }
+    }
+
+    // Immediately clear unread count badge in UI for this chat
+    setChats((prev) =>
+      prev
+        ? prev.map((c) =>
+            c.chat._id === selectedUser
+              ? { ...c, chat: { ...c.chat, unseenCount: 0 } }
+              : c
+          )
+        : prev
+    );
+
+    // Fetch messages for the selected chat
+    const loadMessages = async () => {
+      try {
+        const token = Cookies.get("token");
+        const { data } = await axios.get(`${chat_service}/api/v1/message/${selectedUser}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (isMounted) {
+          if (data?.message) {
+            setMessages(data.message);
+          }
+          if (data?.user) {
+            const resolved = resolveContact(data.user);
+            setUser(resolved);
+          }
+        }
+      } catch (error) {
+        console.log("Error loading messages:", error);
+      }
+    };
+
+    loadMessages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedUser]); // Intentionally dependent only on selectedUser to prevent loop
+
+  // Real-time message listener via WebSockets
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (newMsg: message) => {
+      // If the message is for the currently opened chat, append it immediately to state!
+      if (selectedUser && newMsg.chatId === selectedUser) {
+        setMessages((prev) => {
+          const current = prev || [];
+          if (current.some((m) => m._id === newMsg._id)) return current;
+          return [...current, newMsg];
+        });
+      }
+      // Always refresh sidebar previews & unread counts
+      fetchChats();
+    };
+
+    const handleMessagesSeen = ({ chatId }: { chatId: string }) => {
+      if (selectedUser && selectedUser === chatId) {
+        setMessages((prev) =>
+          prev
+            ? prev.map((m) => (m.sender === loggedInUser?._id ? { ...m, seen: true } : m))
+            : prev
+        );
+      }
+      fetchChats();
+    };
+
+    socket.on("newMessage", handleNewMessage);
+    socket.on("messagesSeen", handleMessagesSeen);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+      socket.off("messagesSeen", handleMessagesSeen);
+    };
+  }, [socket, selectedUser, loggedInUser?._id, fetchChats]);
+
   async function createChat(u: User) {
     try {
       const token = Cookies.get("token");
-      const { data } = await axios.post(`${chat_service}/api/v1/chat/new`, {
-        userId: loggedInUser?._id,
-        otherUserId: u._id,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      const { data } = await axios.post(
+        `${chat_service}/api/v1/chat/new`,
+        {
+          userId: loggedInUser?._id,
+          otherUserId: u._id,
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       setSelectedUser(data.chatId);
       setShowAllUser(false);
+      setUser(u);
       await fetchChats();
     } catch (error) {
       toast.error("Failed to start chat");
     }
   }
 
-  const handleMessageSend = async (e: any, imageFIle?: File | null) => {
-    e.preventDefault()
+  const handleMessageSend = async (e: any, imageFile?: File | null) => {
+    e.preventDefault();
 
-    if (!message.trim() && !imageFIle) return;
-
+    if (!message.trim() && !imageFile) return;
     if (!selectedUser) return;
-    // socket work
 
-    const token = Cookies.get("token")
+    const token = Cookies.get("token");
 
     try {
-      const formData = new FormData()
-
-      formData.append("chatId", selectedUser)
+      const formData = new FormData();
+      formData.append("chatId", selectedUser);
 
       if (message.trim()) {
-        formData.append("text", message)
+        formData.append("text", message);
       }
 
-      if (imageFIle) {
-        formData.append("image", imageFIle);
+      if (imageFile) {
+        formData.append("image", imageFile);
       }
-      const { data } = await axios.post(`${chat_service}/api/v1/message`,
+
+      const { data } = await axios.post(
+        `${chat_service}/api/v1/message`,
         formData,
         {
           headers: {
@@ -107,48 +223,38 @@ const ChatApp = () => {
             "Content-Type": "multipart/form-data",
           },
         }
-      )
+      );
 
       setMessages((prev) => {
-        const currentMessages = prev || []
+        const currentMessages = prev || [];
         const messageExists = currentMessages.some(
-          (msg: { _id: any; }) => msg._id === data.message._id
+          (msg: { _id: any }) => msg._id === data.message._id
         );
 
         if (!messageExists) {
-          return [...currentMessages, data.message]
+          return [...currentMessages, data.message];
         }
-        return currentMessages
+        return currentMessages;
       });
 
-      setMessage("")
-
-      const displayText = imageFIle ? "📷 image" : message
-
+      setMessage("");
+      await fetchChats();
     } catch (error: any) {
-      toast.error(error.response.data.message)
+      toast.error(error.response?.data?.message || "Failed to send message");
     }
-  }
+  };
+
   const handleTyping = (value: string) => {
-    setMessage(value)
+    setMessage(value);
+  };
 
-    if (!selectedUser) return;
-
-    //socket setup
-  }
-
-  useEffect(() => {
-    if (selectedUser) {
-      fetchChats();
-    }
-  }, [selectedUser]);
-
-  if (loading) return <Loading />
+  if (loading) return <Loading />;
 
   return (
-    <div className='min-h-screen flex bg-gray-900 text-white relative overflow-hidden'>
+    <div className="h-screen h-[100dvh] w-full flex bg-[#0b141a] text-[#e9edef] overflow-hidden select-none">
+      {/* Conversation Sidebar - Always visible on desktop/tablet (md:), toggled on mobile */}
       <ChartSideBar
-        sidebarOpen={siderbarOpen}
+        sidebarOpen={siderbarOpen || !selectedUser}
         setSidebarOpen={setSiderbarOpen}
         showAllUsers={showAllUser}
         setShowAllUsers={setShowAllUser}
@@ -157,13 +263,38 @@ const ChatApp = () => {
         chats={chats}
         selectedUser={selectedUser}
         handleLogout={handleLogout}
-        setSelectedUser={setSelectedUser}
-        createChat={createChat} onlineUsers={[]} />
+        setSelectedUser={(id) => {
+          setSelectedUser(id);
+          setSiderbarOpen(false);
+        }}
+        createChat={createChat}
+        onlineUsers={onlineUsers}
+      />
 
-      <div className="flex-1 flex flex-col justify-between p-4 backdrop-blur-xl
-         bg-white/5 border-white/10">
-        <ChatHeader user={user} setSidebarOpen={setSiderbarOpen} isTyping={isTyping}
-          onlineUsers={onlineUsers} />
+      {/* Backdrop overlay for mobile drawer when opened explicitly over chat */}
+      {siderbarOpen && selectedUser && (
+        <div
+          onClick={() => setSiderbarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-20 md:hidden backdrop-blur-xs transition-opacity"
+        />
+      )}
+
+      {/* Active Chat Area - Always visible on desktop/tablet (md:), toggled on mobile */}
+      <main
+        className={`flex-1 flex flex-col h-full min-w-0 bg-[#0b141a] relative overflow-hidden ${
+          !selectedUser ? "hidden md:flex" : "flex"
+        }`}
+      >
+        <ChatHeader
+          user={user}
+          setSidebarOpen={setSiderbarOpen}
+          isTyping={isTyping}
+          onlineUsers={onlineUsers}
+          onBack={() => {
+            setSelectedUser(null);
+            setSiderbarOpen(false);
+          }}
+        />
 
         <ChatMessages
           selectedUser={selectedUser}
@@ -171,12 +302,15 @@ const ChatApp = () => {
           loggedInUser={loggedInUser}
         />
 
-        <MessageInput selectedUser={selectedUser} message={message}
+        <MessageInput
+          selectedUser={selectedUser}
+          message={message}
           setMessage={handleTyping}
-          handleMessageSend={handleMessageSend} />
-      </div>
+          handleMessageSend={handleMessageSend}
+        />
+      </main>
     </div>
-  )
-}
+  );
+};
 
-export default ChatApp
+export default ChatApp;
